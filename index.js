@@ -13,7 +13,7 @@ program
   .description('Generate a React app with custom options');
 
 program.parse(process.argv);
-const repoUrl = 'https://github.com/Daris02/todo-app.git';
+const repoUrl = 'https://github.com/gnest-org/gnest';
 
 if (!repoUrl) {
   console.error('TEMPLATE_URL environment variable is not set.');
