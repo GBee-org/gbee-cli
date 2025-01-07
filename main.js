@@ -1,0 +1,134 @@
+#!/usr/bin/env node
+
+import { Command } from 'commander';
+import inquirer from 'inquirer';
+import { execSync } from 'child_process';
+import fs from 'fs-extra';
+import path from 'path';
+
+const program = new Command();
+
+program
+  .version('1.0.0')
+  .description('Generate an BackEndExpress app with custom options');
+
+program.parse(process.argv);
+
+const TEMPLATE_URL_JS = 'https://github.com/gnest-org/gnest'; // Update with your JS template repo
+const TEMPLATE_URL_TS = 'https://github.com/gnest-org/gnest'; // Update with your TS template repo
+
+const questions = [
+  {
+    type: 'input',
+    name: 'projectName',
+    message: 'Enter the name of your project:',
+    default: 'my-express-app',
+  },
+  {
+    type: 'list',
+    name: 'language',
+    message: 'Choose the language:',
+    choices: ['JavaScript', 'TypeScript'],
+  },
+  {
+    type: 'list',
+    name: 'packageManager',
+    message: 'Choose your package manager:',
+    choices: ['npm', 'pnpm', 'yarn'],
+  },
+  {
+    type: 'checkbox',
+    name: 'dependencies',
+    message: 'Select additional dependencies:',
+    choices: ['express-session', 'express-validator', 'passport'],
+  },
+];
+
+
+const replaceInFiles = async (directory, find, replace) => {
+  const files = await fs.readdir(directory);
+
+  for (const file of files) {
+    const filePath = path.join(directory, file);
+
+    if ((await fs.stat(filePath)).isDirectory()) {
+      // Recursive call for directories
+      await replaceInFiles(filePath, find, replace);
+    } else {
+      // Read and replace in files
+      const content = await fs.readFile(filePath, 'utf8');
+      const updatedContent = content.replace(new RegExp(find, 'g'), replace);
+      await fs.writeFile(filePath, updatedContent, 'utf8');
+    }
+
+    // Rename files or directories if necessary
+    if (file.includes(find)) {
+      const newFilePath = path.join(directory, file.replace(find, replace));
+      await fs.rename(filePath, newFilePath);
+    }
+  }
+};
+
+const runPrompt = async () => {
+  try {
+    const answers = await inquirer.prompt(questions);
+    const { projectName, language, packageManager, dependencies } = answers;
+    const projectPath = path.join(process.cwd(), projectName);
+
+    // Select the appropriate template URL
+    const repoUrl = language === 'TypeScript' ? TEMPLATE_URL_TS : TEMPLATE_URL_JS;
+
+    if (!repoUrl) {
+      console.error('Template URL is not defined for the selected language.');
+      process.exit(1);
+    }
+
+    // Clone the project
+    console.log(`Cloning template from ${repoUrl}...`);
+    execSync(`git clone ${repoUrl} ${projectPath}`, { stdio: 'inherit' });
+
+    // Remove the .git folder
+    const gitFolderPath = path.join(projectPath, '.git');
+    if (fs.existsSync(gitFolderPath)) {
+      console.log('Removing .git folder...');
+      await fs.remove(gitFolderPath);
+    }
+
+    // Update package.json (optional)
+    const packageJsonPath = path.join(projectPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      packageJson.name = projectName;
+      packageJson.version = "1.0.0";
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    // Replace occurrences of "gnest-app" or "GnestApp" with the project name
+    console.log('Customizing project with your project name...');
+    const find = 'gnest-app'; // Nom générique à remplacer
+    const replace = projectName.toLowerCase();
+    await replaceInFiles(projectPath, find, replace);
+
+    const findRestCamelCase = 'GnestRest'; // CamelCase pour les noms de classes ou variables
+    const replaceRestCamelCase = projectName.replace(/-./g, (x) => x[1].toUpperCase());
+    await replaceInFiles(projectPath, findRestCamelCase, replaceRestCamelCase);
+
+    const findCamelCase = 'GnestApp'; // CamelCase pour les noms de classes ou variables
+    const replaceCamelCase = projectName.replace(/-./g, (x) => x[1].toUpperCase());
+    await replaceInFiles(projectPath, findCamelCase, replaceCamelCase);
+
+    console.log('Installing base dependencies...');
+    execSync(`${packageManager} install`, { cwd: projectPath, stdio: 'inherit' });
+
+    if (dependencies.length > 0) {
+      console.log('Installing additional dependencies...');
+      execSync(`${packageManager} install ${dependencies.join(' ')}`, { cwd: projectPath, stdio: 'inherit' });
+    }
+
+    console.log(`Your BackEndExpress App '${projectName}' has been created successfully!`);
+  } catch (error) {
+    console.error('Error generating the project:', error.message);
+  }
+};
+
+runPrompt();
