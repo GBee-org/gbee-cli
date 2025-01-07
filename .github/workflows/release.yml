@@ -1,4 +1,4 @@
-name: Release Workflow with pnpm
+name: Release Workflow
 
 on:
   push:
@@ -16,33 +16,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22
-          cache: 'pnpm'
+          node-version: 18
+          cache: 'npm'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 6
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Verify pnpm installation
-        run: pnpm --version
-
-      - name: Install dependencies with pnpm
-        run: pnpm install
+      - name: Install dependencies
+        run: npm install
 
       - name: Bump version and push changes
         run: |
-          pnpm version patch --no-git-tag-version
+          npm run bump-version
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add package.json pnpm-lock.yaml
+          git add package.json package-lock.json
           git commit -m "chore: bump version to $(node -p "require('./package.json').version")"
           git push origin main
 
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish
+        run: npm publish
