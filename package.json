@@ -7,7 +7,7 @@
     "gbee": "main.js"
   },
   "scripts": {
-    "bump-version": "npm version patch --no-git-tag-version"
+    "bump-version": "npm version patch -m \"chore(release): %s\""
   },
   "keywords": [],
   "author": "daris02",

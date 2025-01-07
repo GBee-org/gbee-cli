@@ -22,14 +22,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Set up Git config
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
       - name: Bump version and push changes
         run: |
           npm run bump-version
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
           git add package.json package-lock.json
           git commit -m "chore: bump version to $(node -p "require('./package.json').version")"
-          git push origin main
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gnest-org/gnest-cli.git HEAD:main
 
       - name: Publish to npm
         env:
