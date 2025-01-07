@@ -4,11 +4,10 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "gbee": "main.js",
-    "bump-version": "npm version patch -m \"chore(release): %s\""
+    "gbee": "main.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "bump-version": "npm version patch --no-git-tag-version"
   },
   "keywords": [],
   "author": "daris02",
