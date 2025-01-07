@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
-import inquirer from 'inquirer';
-import { execSync } from 'child_process';
-import fs from 'fs-extra';
 import path from 'path';
+import fs from 'fs-extra';
+import inquirer from 'inquirer';
+import { Command } from 'commander';
+import { execSync } from 'child_process';
+import { version } from './package.json';
 
 const program = new Command();
 
 program
-  .version('1.0.2')
+  .version(version)
   .description('Generate an BackEndExpress app with custom options');
 
 program.parse(process.argv);

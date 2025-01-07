@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "gbee": "main.js"
+    "gbee": "main.js",
+    "bump-version": "npm version patch -m \"chore(release): %s\""
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,5 +19,8 @@
     "commander": "^12.1.0",
     "fs-extra": "^11.2.0",
     "inquirer": "^10.2.0"
+  },
+  "devDependencies": {
+    "standard-version": "^9.5.0"
   }
 }
