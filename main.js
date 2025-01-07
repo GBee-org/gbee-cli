@@ -9,7 +9,7 @@ import path from 'path';
 const program = new Command();
 
 program
-  .version('1.0.0')
+  .version('1.0.2')
   .description('Generate an BackEndExpress app with custom options');
 
 program.parse(process.argv);
@@ -117,12 +117,20 @@ const runPrompt = async () => {
     const replaceCamelCase = projectName.replace(/-./g, (x) => x[1].toUpperCase());
     await replaceInFiles(projectPath, findCamelCase, replaceCamelCase);
 
+    // Verify if app folder exists
+    const appPath = path.join(projectPath, 'app');
+    if (!fs.existsSync(appPath)) {
+      console.error('Error: The "app" folder does not exist in the project.');
+      process.exit(1);
+    }
+    
+    // Installer les dépendances dans le dossier "app"
     console.log('Installing base dependencies...');
-    execSync(`${packageManager} install`, { cwd: projectPath, stdio: 'inherit' });
+    execSync(`${packageManager} install`, { cwd: appPath, stdio: 'inherit' });
 
     if (dependencies.length > 0) {
       console.log('Installing additional dependencies...');
-      execSync(`${packageManager} install ${dependencies.join(' ')}`, { cwd: projectPath, stdio: 'inherit' });
+      execSync(`${packageManager} install ${dependencies.join(' ')}`, { cwd: appPath, stdio: 'inherit' });
     }
 
     console.log(`Your BackEndExpress App '${projectName}' has been created successfully!`);
