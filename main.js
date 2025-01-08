@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 
 import path from 'path';
-import fs from 'fs-extra';
 import inquirer from 'inquirer';
+import fs from 'fs-extra';
+import { fileURLToPath } from 'url';
 import { Command } from 'commander';
 import { execSync } from 'child_process';
-import { version } from './package.json';
 
+const { readFileSync }  = fs;
 const program = new Command();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+
 program
-  .version(version)
+  .version(pkg.version)
   .description('Generate an BackEndExpress app with custom options');
 
 program.parse(process.argv);
@@ -20,7 +24,7 @@ const TEMPLATE_URL_TS = 'https://github.com/gnest-org/gnest'; // Update with you
 
 const questions = [
   {
-    type: 'input',
+    type: 'input',  
     name: 'projectName',
     message: 'Enter the name of your project:',
     default: 'my-express-app',
