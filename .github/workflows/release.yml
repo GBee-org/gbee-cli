@@ -18,21 +18,13 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Set up Git config
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
           
-      - name: Bump version and push changes
-        run: |
-          npm run bump-version
-          git add package.json package-lock.json
-          git commit -m "chore: bump version to $(node -p "require('./package.json').version")"
-          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gnest-org/gnest-cli.git HEAD:main
+      - name:  'Automated Version Bump'
+        uses:  'phips28/gh-action-bump-version@master'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          skip-tag:  'true'
 
       - name: Publish to npm
         env:
