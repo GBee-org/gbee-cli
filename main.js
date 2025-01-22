@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { fileURLToPath } from 'url';
 import { Command } from 'commander';
-import createPrompt from './create';
+import createPrompt from './create.js';
 
 const { readFileSync }  = fs;
 const program = new Command();
