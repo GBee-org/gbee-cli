@@ -127,8 +127,8 @@ const createPrompt = async () => {
     console.log(`Your BackEndExpress App '${projectName}' has been created successfully!`);
     console.log('Next steps:');
     console.log(`  cd ${projectName}/app`);
-    console.log('  npm install');
-    console.log('  npm start');
+    console.log(`  ${packageManager} install`);
+    console.log(`  ${packageManager} start`);
 
   } catch (error) {
     console.error('Error generating the project:', error.message);
