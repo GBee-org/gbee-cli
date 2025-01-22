@@ -6,23 +6,33 @@ import { fileURLToPath } from 'url';
 import { Command } from 'commander';
 import createPrompt from './create.js';
 
-const { readFileSync }  = fs;
 const program = new Command();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const pkg = JSON.parse(readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+let pkg = {};
+try {
+  const pkgPath = new URL('./package.json', import.meta.url);
+  pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+} catch (error) {
+  console.error('Error reading package.json:', error.message);
+  process.exit(1);
+}
 
 program
   .version(pkg.version)
   .description('Generate an BackEndExpress app with custom options');
 
-
 program
   .command('create')
-  .description('Create a new generate backend express app')
+  .description('Create a new backend express app')
   .action(() => {
     createPrompt();
   });
+
+program.on('command:*', ([cmd]) => {
+  console.error(`Error: Unknown command '${cmd}'`);
+  program.outputHelp();
+  process.exit(1);
+});
 
 program.parse(process.argv);
 
