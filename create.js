@@ -3,6 +3,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import inquirer from 'inquirer';
+import { execSync } from 'child_process';
 
 const TEMPLATE_URL_JS = 'https://github.com/gnest-org/gnest'; // Update with your JS template repo
 const TEMPLATE_URL_TS = 'https://github.com/gnest-org/gnest'; // Update with your TS template repo
