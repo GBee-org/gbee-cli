@@ -32,8 +32,8 @@ program
 program
   .command('generate')
   .description('Generate app endpoint from api.yml file')
-  .action(() => {
-    generatePrompt();
+  .action((args) => {
+    generatePrompt(args);
   });
 
 program.on('command:*', ([cmd]) => {

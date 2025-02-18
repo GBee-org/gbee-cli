@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Import statements
 import fs from 'fs';
 import jsYaml from 'js-yaml';
@@ -12,6 +14,7 @@ interface SchemaProperty {
 interface Schema {
   type: string;
   properties?: { [key: string]: SchemaProperty };
+  items?: SchemaProperty; 
 }
 
 // Function to create an object from a schema definition
@@ -22,13 +25,13 @@ function createObjectFromSchema(schema: Schema): any {
       // Set default values based on property types
       switch (property.type) {
         case 'string':
-          obj[key] = property.example || '';
+          obj[key] = property.type;
           break;
         case 'integer':
-          obj[key] = property.example || 0;
+          obj[key] = 'number';
           break;
         case 'boolean':
-          obj[key] = false;
+          obj[key] = 'boolean';
           break;
         default:
           obj[key] = null;
@@ -57,7 +60,7 @@ function inferTypeFromSchema(schema: Schema): any {
       }
     case 'array':
       // Handle arrays (assuming homogeneous elements for simplicity)
-//      return Array<inferTypeFromSchema(schema.items || { type: 'any' })>
+     return Array.from(inferTypeFromSchema(schema.items));
     default:
       return 'any';
   }
@@ -68,10 +71,10 @@ function parseSpec(yamlString: string): { schemas: { [key: string]: any }; paths
   const spec = jsYaml.load(yamlString);
 
   // Create objects for schemas with inferred types
-  const schemas: [ {key: any} ] = [];
+  const schemas: { [key: string]: any } = {};
   for (const [name, schema] of Object.entries(spec.components.schemas)) {
-    // schemas[name] = createObjectFromSchema(schema);
-    schemas[name] = inferTypeFromSchema(schema);
+    const schemaWithType: Schema = schema as any;
+    schemas[name] = inferTypeFromSchema(schemaWithType);
   }
 
   // Create objects for paths (endpoints) and their request/response models
@@ -126,15 +129,26 @@ function parseSpec(yamlString: string): { schemas: { [key: string]: any }; paths
   return { schemas, paths };
 }
 
-// Example usage: Load the YAML string and parse it
-const yamlFilePath = './api.yml';
+const generatePrompt = async (args: any) => {
+  try {
+    console.log(args);
+    // Example usage: Load the YAML string and parse it
+    // const yamlFilePath = './api.yml';
+    
+    // Read the content of the file
+    // const yamlString = fs.readFileSync(yamlFilePath, 'utf8');
+    
+    // const { schemas, paths } = parseSpec(yamlString);
+    
+    // console.log("#-------------------------------------#")
+    // console.log("#----------- Sortie Final ------------#")
+    // console.log("Schemas: ", schemas);
+    // console.log("Paths: ", paths);
+    
+    return;
+  } catch (error) {
+    console.error('Error generating the project:', error.message);
+  }
+}
 
-// Read the content of the file
-const yamlString = fs.readFileSync(yamlFilePath, 'utf8');
-
-const { schemas, paths } = parseSpec(yamlString);
-
-console.log("#-------------------------------------#")
-console.log("#----------- Sortie Final ------------#")
-console.log("Schemas: ", schemas);
-console.log("Paths: ", paths);
+export default generatePrompt;
