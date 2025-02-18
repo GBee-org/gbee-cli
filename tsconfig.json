@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "./"
+  },
+  "files": [
+    "src/generate.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

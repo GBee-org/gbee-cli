@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import { fileURLToPath } from 'url';
 import { Command } from 'commander';
 import createPrompt from './create.js';
+import generatePrompt from './src/generate.ts';
 
 const program = new Command();
 
@@ -26,6 +27,13 @@ program
   .description('Create a new backend express app')
   .action(() => {
     createPrompt();
+  });
+
+program
+  .command('generate')
+  .description('Generate app endpoint from api.yml file')
+  .action(() => {
+    generatePrompt();
   });
 
 program.on('command:*', ([cmd]) => {
