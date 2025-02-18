@@ -131,7 +131,7 @@ const createPrompt = async () => {
     console.log(`  ${packageManager} start`);
 
   } catch (error) {
-    console.error('Error generating the project:', error.message);
+    console.error('Error creating the project:', error.message);
   }
 };
 
