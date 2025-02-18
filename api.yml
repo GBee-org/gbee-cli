@@ -208,7 +208,7 @@ components:
           type: string
           example: productName
         price:
-          type: double
+          type: integer
           format: int64
           example: 10
     User:
