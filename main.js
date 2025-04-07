@@ -3,7 +3,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { fileURLToPath } from 'url';
-import { Command } from 'commander';
+import { Argument, Command } from 'commander';
 import createPrompt from './create.js';
 import generatePrompt from './src/generate.ts';
 
@@ -32,8 +32,9 @@ program
 program
   .command('generate')
   .description('Generate app endpoint from api.yml file')
-  .action((args) => {
-    generatePrompt(args);
+  .argument('<api>')
+  .action((api) => {
+    generatePrompt({api});
   });
 
 program.on('command:*', ([cmd]) => {

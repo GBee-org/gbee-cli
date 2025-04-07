@@ -1,3 +1,6 @@
 /node_modules
+/out
+/.vscode
 .env
 api.yml
+openapitools.json
