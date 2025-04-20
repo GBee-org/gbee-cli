@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
-import path from 'path';
 import fs from 'fs-extra';
-import { fileURLToPath } from 'url';
-import { Argument, Command } from 'commander';
+import { Command } from 'commander';
 import createPrompt from './create.js';
-import generatePrompt from './src/generate.ts';
+import generatePrompt from './generate.js';
 
 const program = new Command();
 

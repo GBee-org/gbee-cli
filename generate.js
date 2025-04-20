@@ -1,99 +1,69 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-// Import statements
-var fs_1 = require("fs");
-var js_yaml_1 = require("js-yaml");
-// Function to create an object from a schema definition
-function createObjectFromSchema(schema) {
-    var obj = {};
-    if (schema.type === 'object' && schema.properties) {
-        for (var _i = 0, _a = Object.entries(schema.properties); _i < _a.length; _i++) {
-            var _b = _a[_i], key = _b[0], property = _b[1];
-            // Set default values based on property types
-            switch (property.type) {
-                case 'string':
-                    obj[key] = property.example || '';
-                    break;
-                case 'integer':
-                    obj[key] = property.example || 0;
-                    break;
-                case 'boolean':
-                    obj[key] = false;
-                    break;
-                default:
-                    obj[key] = null;
-            }
-        }
-    }
-    return obj;
-}
-// Function to infer type from schema (recursive)
+#!/usr/bin/env node
+import fs from "fs";
+import jsYaml from "js-yaml";
 function inferTypeFromSchema(schema) {
     switch (schema.type) {
-        case 'string':
-            return 'string';
-        case 'integer':
-            return 'number';
-        case 'boolean':
-            return 'boolean';
-        case 'object':
+        case "string":
+            return typeof (schema.example || "string");
+        case "integer":
+            return typeof (schema.example || "number");
+        case "boolean":
+            return typeof (schema.example || "boolean");
+        case "object":
             if (schema.properties) {
-                var propertiesType = {};
-                for (var _i = 0, _a = Object.entries(schema.properties); _i < _a.length; _i++) {
-                    var _b = _a[_i], key = _b[0], property = _b[1];
+                const propertiesType = {};
+                for (const [key, property] of Object.entries(schema.properties)) {
                     propertiesType[key] = inferTypeFromSchema(property);
                 }
                 return propertiesType;
             }
-        case 'array':
-        // Handle arrays (assuming homogeneous elements for simplicity)
-        //      return Array<inferTypeFromSchema(schema.items || { type: 'any' })>
+        case "array":
+            // Handle arrays (assuming homogeneous elements for simplicity)
+            return Array.from(inferTypeFromSchema(schema.items));
         default:
-            return 'any';
+            return "any";
     }
 }
 // Function to parse the YAML specification and create objects
 function parseSpec(yamlString) {
-    var spec = js_yaml_1.default.load(yamlString);
+    const spec = jsYaml.load(yamlString);
     // Create objects for schemas with inferred types
-    var schemas = [];
-    for (var _i = 0, _a = Object.entries(spec.components.schemas); _i < _a.length; _i++) {
-        var _b = _a[_i], name_1 = _b[0], schema = _b[1];
-        // schemas[name] = createObjectFromSchema(schema);
-        schemas[name_1] = inferTypeFromSchema(schema);
+    const schemas = {};
+    for (const [name, schema] of Object.entries(spec.components.schemas)) {
+        const schemaWithType = schema;
+        schemas[name] = inferTypeFromSchema(schemaWithType);
     }
     // Create objects for paths (endpoints) and their request/response models
-    var paths = {};
-    for (var _c = 0, _d = Object.entries(spec.paths); _c < _d.length; _c++) {
-        var _e = _d[_c], path = _e[0], pathObject = _e[1];
+    const paths = {};
+    for (const [path, pathObject] of Object.entries(spec.paths)) {
         paths[path] = {};
-        for (var _f = 0, _g = Object.entries(pathObject); _f < _g.length; _f++) {
-            var _h = _g[_f], method = _h[0], methodObject = _h[1];
+        for (const [method, methodObject] of Object.entries(pathObject)) {
             paths[path][method] = {};
             // Request body object (if defined)
             if (methodObject.requestBody) {
-                var requestBodySchema = methodObject.requestBody.content['application/json'].schema;
-                var requestBodyRef = void 0;
+                const requestBodySchema = methodObject.requestBody.content["application/json"].schema;
+                let requestBodyRef;
                 if (requestBodySchema.type) {
-                    if (requestBodySchema.type == 'array') {
+                    if (requestBodySchema.type == "array") {
                         requestBodyRef = requestBodySchema.items.$ref;
                     }
                 }
                 else {
                     requestBodyRef = requestBodySchema.$ref;
                 }
-                var requestBodyName = requestBodyRef.substring(requestBodyRef.lastIndexOf('/') + 1);
+                const requestBodyName = requestBodyRef.substring(requestBodyRef.lastIndexOf("/") + 1);
                 paths[path][method].requestBody = schemas[requestBodyName];
             }
             // Response objects (for successful responses)
-            for (var _j = 0, _k = Object.entries(methodObject.responses); _j < _k.length; _j++) {
-                var _l = _k[_j], statusCode = _l[0], responseObject = _l[1];
-                if (statusCode.startsWith('2')) { // Success codes (2xx)
-                    var responseBody = responseObject.content['application/json'];
-                    var responseBodySchema = responseBody.schema;
-                    var responseBodyRef = void 0;
+            for (const [statusCode, responseObjectInit] of Object.entries(methodObject.responses)) {
+                const responseObject = responseObjectInit;
+                if (statusCode.startsWith("2")) {
+                    // Success codes (2xx)
+                    const responseBody = responseObject.content["application/json"];
+                    const responseBodySchema = responseBody.schema;
+                    let responseBodyRef;
                     if (responseBodySchema.type) {
-                        if (responseBodySchema.type == 'array') {
+                        if (responseBodySchema.type == "array") {
                             responseBodyRef = responseBodySchema.items.$ref;
                         }
                         else {
@@ -104,7 +74,7 @@ function parseSpec(yamlString) {
                         responseBodyRef = responseBodySchema.$ref;
                     }
                     if (String(responseBodyRef).includes("#")) {
-                        var responseBodyName = responseBodyRef.substring(responseBodyRef.lastIndexOf('/') + 1);
+                        const responseBodyName = responseBodyRef.substring(responseBodyRef.lastIndexOf("/") + 1);
                         paths[path][method].response = schemas[responseBodyName];
                     }
                     else {
@@ -114,14 +84,28 @@ function parseSpec(yamlString) {
             }
         }
     }
-    return { schemas: schemas, paths: paths };
+    return { schemas, paths };
 }
-// Example usage: Load the YAML string and parse it
-var yamlFilePath = './api.yml';
-// Read the content of the file
-var yamlString = fs_1.default.readFileSync(yamlFilePath, 'utf8');
-var _a = parseSpec(yamlString), schemas = _a.schemas, paths = _a.paths;
-console.log("#-------------------------------------#");
-console.log("#----------- Sortie Final ------------#");
-console.log("Schemas: ", schemas);
-console.log("Paths: ", paths);
+const generatePrompt = async (args) => {
+    try {
+        // Example usage: Load the YAML string and parse it
+        const yamlFilePath = args.api;
+        // Read the content of the file
+        const yamlString = fs.readFileSync(yamlFilePath, "utf8");
+        const { schemas, paths } = parseSpec(yamlString);
+        // fs.writeFileSync("./schemas.ts", JSON.stringify(schemas).normalize());
+        console.log("#-------------------------------------#");
+        console.log("#----------- Sortie Final ------------#");
+        console.log("Schemas: ", schemas);
+        console.log("Paths: ", paths);
+        return;
+    }
+    catch (error) {
+        console.error("Error generating the project:", error.message);
+    }
+};
+export default generatePrompt;
+// openapi-generator-cli generate \
+//     -i api.yml \
+//     -g typescript \
+//     -o out 
