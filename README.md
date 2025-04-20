@@ -25,3 +25,28 @@ npm install -g gbee-cli
 # or
 pnpm install -g gbee-cli
 ```
+
+
+## 🛠️ Usage
+
+After installing `gbee-cli`, you can start generating your backend project using the following commands:
+
+### 📁 Create a New Project
+
+```bash
+gbee create
+```
+
+This command initializes a new Express-based backend project using an interactive template setup. It walks you through configuration steps such as project name, database integration, structure setup, and more.
+
+
+## 🔧 Generate Backend from API Specification
+
+```bash
+gbee generate <spec-file>.yml
+```
+This command automatically generates the backend structure (routes, controllers, services, etc.) from an OpenAPI-compatible api.yml file.
+
+|  ⚠️ Make sure the api.yml file is located at the root of your project before running this command.
+
+Example of spec file: [api.yaml](/api.yml)
