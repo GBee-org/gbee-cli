@@ -16,10 +16,10 @@ const questions = [
     default: 'my-express-app',
   },
   {
-    type: 'list',
-    name: 'language',
-    message: 'Choose the language:',
-    choices: ['JavaScript', 'TypeScript'],
+    // type: 'list',
+    // name: 'language',
+    // message: 'Choose the language:',
+    // choices: ['JavaScript', 'TypeScript'],
   },
   {
     type: 'list',
@@ -27,12 +27,12 @@ const questions = [
     message: 'Choose your package manager:',
     choices: ['npm', 'pnpm', 'yarn'],
   },
-  {
-    type: 'checkbox',
-    name: 'dependencies',
-    message: 'Select additional dependencies:',
-    choices: ['express-session', 'express-validator', 'passport'],
-  },
+  // {
+  //   type: 'checkbox',
+  //   name: 'dependencies',
+  //   message: 'Select additional dependencies:',
+  //   choices: ['express-session', 'express-validator', 'passport'],
+  // },
 ];
 
 
@@ -67,7 +67,8 @@ const createPrompt = async () => {
     const projectPath = path.join(process.cwd(), projectName);
 
     // Select the appropriate template URL
-    const repoUrl = language === 'TypeScript' ? TEMPLATE_URL_TS : TEMPLATE_URL_JS;
+    // const repoUrl = language === 'TypeScript' ? TEMPLATE_URL_TS : TEMPLATE_URL_JS;
+    const repoUrl = TEMPLATE_URL_TS;
 
     if (!repoUrl) {
       console.error('Template URL is not defined for the selected language.');
@@ -94,17 +95,17 @@ const createPrompt = async () => {
       await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
     }
 
-    // Replace occurrences of "gnest-app" or "GnestApp" with the project name
+    // Replace occurrences of "gbee-app" or "GBeeApp" with the project name
     console.log('Customizing project with your project name...');
-    const find = 'gnest-app'; // Nom générique à remplacer
+    const find = 'gbee-app'; // Nom générique à remplacer
     const replace = projectName.toLowerCase();
     await replaceInFiles(projectPath, find, replace);
 
-    const findRestCamelCase = 'GnestRest'; // CamelCase pour les noms de classes ou variables
+    const findRestCamelCase = 'GBeeRest'; // CamelCase pour les noms de classes ou variables
     const replaceRestCamelCase = projectName.replace(/-./g, (x) => x[1].toUpperCase());
     await replaceInFiles(projectPath, findRestCamelCase, replaceRestCamelCase);
 
-    const findCamelCase = 'GnestApp'; // CamelCase pour les noms de classes ou variables
+    const findCamelCase = 'GBeeApp'; // CamelCase pour les noms de classes ou variables
     const replaceCamelCase = projectName.replace(/-./g, (x) => x[1].toUpperCase());
     await replaceInFiles(projectPath, findCamelCase, replaceCamelCase);
 
