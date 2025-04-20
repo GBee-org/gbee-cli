@@ -49,4 +49,4 @@ This command automatically generates the backend structure (routes, controllers,
 
 |  ⚠️ Make sure the api.yml file is located at the root of your project before running this command.
 
-Example of spec file: [api.yaml](/api.yml)
+Example of spec file: [api.yaml](https://raw.githubusercontent.com/GBee-org/gbee-cli/refs/heads/main/api.yml)
