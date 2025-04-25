@@ -15,12 +15,12 @@ const questions = [
     message: 'Enter the name of your project:',
     default: 'my-express-app',
   },
-  {
-    // type: 'list',
-    // name: 'language',
-    // message: 'Choose the language:',
-    // choices: ['JavaScript', 'TypeScript'],
-  },
+  // {
+  //   type: 'list',
+  //   name: 'language',
+  //   message: 'Choose the language:',
+  //   choices: ['JavaScript', 'TypeScript'],
+  // },
   {
     type: 'list',
     name: 'packageManager',
@@ -120,7 +120,7 @@ const createPrompt = async () => {
     console.log('Installing base dependencies...');
     execSync(`${packageManager} install`, { cwd: appPath, stdio: 'inherit' });
 
-    if (dependencies.length > 0 || dependencies !== undefined || dependencies !== null) {
+    if (dependencies !== undefined || dependencies !== null || dependencies.length > 0) {
       console.log('Installing additional dependencies...');
       execSync(`${packageManager} install ${dependencies.join(' ')}`, { cwd: appPath, stdio: 'inherit' });
     }
