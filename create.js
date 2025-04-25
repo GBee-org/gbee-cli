@@ -27,12 +27,6 @@ const questions = [
     message: 'Choose your package manager:',
     choices: ['npm', 'pnpm', 'yarn'],
   },
-  // {
-  //   type: 'checkbox',
-  //   name: 'dependencies',
-  //   message: 'Select additional dependencies:',
-  //   choices: ['express-session', 'express-validator', 'passport'],
-  // },
 ];
 
 
@@ -63,7 +57,7 @@ const replaceInFiles = async (directory, find, replace) => {
 const createPrompt = async () => {
   try {
     const answers = await inquirer.prompt(questions);
-    const { projectName, language, packageManager, dependencies } = answers;
+    const { projectName, language, packageManager } = answers;
     const projectPath = path.join(process.cwd(), projectName);
 
     // Select the appropriate template URL
@@ -119,11 +113,6 @@ const createPrompt = async () => {
     // Installer les dépendances dans le dossier "app"
     console.log('Installing base dependencies...');
     execSync(`${packageManager} install`, { cwd: appPath, stdio: 'inherit' });
-
-    if (dependencies !== undefined || dependencies !== null || dependencies.length > 0) {
-      console.log('Installing additional dependencies...');
-      execSync(`${packageManager} install ${dependencies.join(' ')}`, { cwd: appPath, stdio: 'inherit' });
-    }
 
     console.log(`Your BackEndExpress App '${projectName}' has been created successfully!`);
     console.log('Next steps:');
