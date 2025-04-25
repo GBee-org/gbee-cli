@@ -120,7 +120,7 @@ const createPrompt = async () => {
     console.log('Installing base dependencies...');
     execSync(`${packageManager} install`, { cwd: appPath, stdio: 'inherit' });
 
-    if (dependencies.length > 0) {
+    if (dependencies.length > 0 || dependencies !== undefined || dependencies !== null) {
       console.log('Installing additional dependencies...');
       execSync(`${packageManager} install ${dependencies.join(' ')}`, { cwd: appPath, stdio: 'inherit' });
     }
