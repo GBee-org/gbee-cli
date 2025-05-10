@@ -24,7 +24,7 @@ function inferTypeFromSchema(schema: Schema) {
     case "boolean":
       return typeof (schema.example || "boolean");
     case "object":
-      if (schema.properties) {
+      if ("properties" in schema && schema.properties) {
         const propertiesType: { [key: string]: any } = {};
         for (const [key, property] of Object.entries(schema.properties)) {
           propertiesType[key] = inferTypeFromSchema(property);
@@ -50,7 +50,7 @@ function parseSpec(yamlString: string): {
   const schemas: { [key: string]: any } = {};
   for (const [name, schema] of Object.entries(spec.components.schemas)) {
     const schemaWithType: Schema = schema as any;
-    schemas[name] = inferTypeFromSchema(schemaWithType);
+    schemas[name] = schemaWithType;
   }
 
   // Create objects for paths (endpoints) and their request/response models
@@ -123,12 +123,16 @@ const generatePrompt = async (args?: any) => {
 
     const { schemas, paths } = parseSpec(yamlString);
 
-    // fs.writeFileSync("./schemas.ts", JSON.stringify(schemas).normalize());
+    // Create all schemas to type (TypeScript)
+    Object.entries(schemas).map(([name, schema]) => {
+      fs.writeFileSync(
+        `src/${name}.ts`,
+        generateTypeScriptInterfaces(name, schema)
+      );
+    });
 
-    console.log("#-------------------------------------#")
-    console.log("#----------- Sortie Final ------------#")
-    console.log("Schemas: ", schemas);
-    console.log("Paths: ", paths);
+    console.log("✅ Schemas successfully generated.");
+    // console.log(paths);
 
     return;
   } catch (error) {
@@ -136,9 +140,37 @@ const generatePrompt = async (args?: any) => {
   }
 };
 
-export default generatePrompt;
+function toTsType(schema: SchemaProperty | Schema): string {
+  switch (schema.type) {
+    case "string":
+      return "string";
+    case "integer":
+      return "number";
+    case "number":
+      return "number";
+    case "boolean":
+      return "boolean";
+    case "array":
+      if ("items" in schema && schema.items) {
+        return `${toTsType(schema.items)}[]`;
+      }
+      return "any[]";
+    case "object":
+      if ("properties" in schema && schema.properties) {
+        return `{ ${Object.entries(schema.properties)
+          .map(([key, val]) => `${key}: ${toTsType(val)}`)
+          .join("; ")} }`;
+      }
+    default:
+      return "any";
+  }
+}
 
-// openapi-generator-cli generate \
-//     -i api.yml \
-//     -g typescript \
-//     -o out 
+function generateTypeScriptInterfaces(name: string, schema: Schema): string {
+  const props = Object.entries(schema.properties)
+    .map(([propName, propSchema]) => `  ${propName}: ${toTsType(propSchema)};`)
+    .join("\n");
+  return `export type ${name} = {\n${props}\n}\n`;
+}
+
+export default generatePrompt;
