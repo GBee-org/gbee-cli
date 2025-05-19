@@ -1,6 +1,12 @@
 #!/usr/bin/env node
-import fs from "fs";
-import jsYaml from "js-yaml";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generatePrompt = void 0;
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const js_yaml_1 = __importDefault(require("js-yaml"));
 function inferTypeFromSchema(schema) {
     switch (schema.type) {
         case "string":
@@ -26,7 +32,7 @@ function inferTypeFromSchema(schema) {
 }
 // Function to parse the YAML specification and create objects
 function parseSpec(yamlString) {
-    const spec = jsYaml.load(yamlString);
+    const spec = js_yaml_1.default.load(yamlString);
     // Create objects for schemas with inferred types
     const schemas = {};
     for (const [name, schema] of Object.entries(spec.components.schemas)) {
@@ -91,11 +97,11 @@ const generatePrompt = async (args) => {
         // Example usage: Load the YAML string and parse it
         const yamlFilePath = args.api;
         // Read the content of the file
-        const yamlString = fs.readFileSync(yamlFilePath, "utf8");
+        const yamlString = fs_extra_1.default.readFileSync(yamlFilePath, "utf8");
         const { schemas, paths } = parseSpec(yamlString);
         // Create all schemas to type (TypeScript)
         Object.entries(schemas).map(([name, schema]) => {
-            fs.writeFileSync(`src/${name}.ts`, generateTypeScriptInterfaces(name, schema));
+            fs_extra_1.default.writeFileSync(`src/${name}.ts`, generateTypeScriptInterfaces(name, schema));
         });
         console.log("✅ Schemas successfully generated.");
         // console.log(paths);
@@ -105,6 +111,7 @@ const generatePrompt = async (args) => {
         console.error("Error generating the project:", error.message);
     }
 };
+exports.generatePrompt = generatePrompt;
 function toTsType(schema) {
     switch (schema.type) {
         case "string":
@@ -136,4 +143,3 @@ function generateTypeScriptInterfaces(name, schema) {
         .join("\n");
     return `export type ${name} = {\n${props}\n}\n`;
 }
-export default generatePrompt;

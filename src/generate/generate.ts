@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import fs from "fs";
+import fs from 'fs-extra';
 import jsYaml from "js-yaml";
 
 interface SchemaProperty {
@@ -113,7 +113,7 @@ function parseSpec(yamlString: string): {
   return { schemas, paths };
 }
 
-const generatePrompt = async (args?: any) => {
+export const generatePrompt = async (args?: any) => {
   try {
     // Example usage: Load the YAML string and parse it
     const yamlFilePath = args.api;
@@ -172,5 +172,3 @@ function generateTypeScriptInterfaces(name: string, schema: Schema): string {
     .join("\n");
   return `export type ${name} = {\n${props}\n}\n`;
 }
-
-export default generatePrompt;
