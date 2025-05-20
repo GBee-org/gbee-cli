@@ -15,12 +15,6 @@ const questions = [
     message: 'Enter the name of your project:',
     default: 'my-express-app',
   },
-  // {
-  //   type: 'list',
-  //   name: 'language',
-  //   message: 'Choose the language:',
-  //   choices: ['JavaScript', 'TypeScript'],
-  // },
   {
     type: 'list',
     name: 'packageManager',
@@ -28,7 +22,6 @@ const questions = [
     choices: ['npm', 'pnpm', 'yarn'],
   },
 ];
-
 
 const replaceInFiles = async (directory, find, replace) => {
   const files = await fs.readdir(directory);
@@ -54,7 +47,7 @@ const replaceInFiles = async (directory, find, replace) => {
   }
 };
 
-const createPrompt = async () => {
+export const createPrompt = async () => {
   try {
     const answers = await inquirer.prompt(questions);
     const { projectName, language, packageManager } = answers;
@@ -124,5 +117,3 @@ const createPrompt = async () => {
     console.error('Error creating the project:', error.message);
   }
 };
-
-export default createPrompt;

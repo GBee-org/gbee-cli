@@ -1,6 +1,12 @@
 #!/usr/bin/env node
-import fs from "fs";
-import jsYaml from "js-yaml";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generatePrompt = void 0;
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const js_yaml_1 = __importDefault(require("js-yaml"));
 function inferTypeFromSchema(schema) {
     switch (schema.type) {
         case "string":
@@ -10,7 +16,7 @@ function inferTypeFromSchema(schema) {
         case "boolean":
             return typeof (schema.example || "boolean");
         case "object":
-            if (schema.properties) {
+            if ("properties" in schema && schema.properties) {
                 const propertiesType = {};
                 for (const [key, property] of Object.entries(schema.properties)) {
                     propertiesType[key] = inferTypeFromSchema(property);
@@ -26,12 +32,12 @@ function inferTypeFromSchema(schema) {
 }
 // Function to parse the YAML specification and create objects
 function parseSpec(yamlString) {
-    const spec = jsYaml.load(yamlString);
+    const spec = js_yaml_1.default.load(yamlString);
     // Create objects for schemas with inferred types
     const schemas = {};
     for (const [name, schema] of Object.entries(spec.components.schemas)) {
         const schemaWithType = schema;
-        schemas[name] = inferTypeFromSchema(schemaWithType);
+        schemas[name] = schemaWithType;
     }
     // Create objects for paths (endpoints) and their request/response models
     const paths = {};
@@ -91,21 +97,49 @@ const generatePrompt = async (args) => {
         // Example usage: Load the YAML string and parse it
         const yamlFilePath = args.api;
         // Read the content of the file
-        const yamlString = fs.readFileSync(yamlFilePath, "utf8");
+        const yamlString = fs_extra_1.default.readFileSync(yamlFilePath, "utf8");
         const { schemas, paths } = parseSpec(yamlString);
-        // fs.writeFileSync("./schemas.ts", JSON.stringify(schemas).normalize());
-        console.log("#-------------------------------------#");
-        console.log("#----------- Sortie Final ------------#");
-        console.log("Schemas: ", schemas);
-        console.log("Paths: ", paths);
+        // Create all schemas to type (TypeScript)
+        Object.entries(schemas).map(([name, schema]) => {
+            fs_extra_1.default.writeFileSync(`src/${name}.ts`, generateTypeScriptInterfaces(name, schema));
+        });
+        console.log("✅ Schemas successfully generated.");
+        // console.log(paths);
         return;
     }
     catch (error) {
         console.error("Error generating the project:", error.message);
     }
 };
-export default generatePrompt;
-// openapi-generator-cli generate \
-//     -i api.yml \
-//     -g typescript \
-//     -o out 
+exports.generatePrompt = generatePrompt;
+function toTsType(schema) {
+    switch (schema.type) {
+        case "string":
+            return "string";
+        case "integer":
+            return "number";
+        case "number":
+            return "number";
+        case "boolean":
+            return "boolean";
+        case "array":
+            if ("items" in schema && schema.items) {
+                return `${toTsType(schema.items)}[]`;
+            }
+            return "any[]";
+        case "object":
+            if ("properties" in schema && schema.properties) {
+                return `{ ${Object.entries(schema.properties)
+                    .map(([key, val]) => `${key}: ${toTsType(val)}`)
+                    .join("; ")} }`;
+            }
+        default:
+            return "any";
+    }
+}
+function generateTypeScriptInterfaces(name, schema) {
+    const props = Object.entries(schema.properties)
+        .map(([propName, propSchema]) => `  ${propName}: ${toTsType(propSchema)};`)
+        .join("\n");
+    return `export type ${name} = {\n${props}\n}\n`;
+}
