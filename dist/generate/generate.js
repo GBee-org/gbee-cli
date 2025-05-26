@@ -7,29 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generatePrompt = void 0;
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const js_yaml_1 = __importDefault(require("js-yaml"));
-function inferTypeFromSchema(schema) {
-    switch (schema.type) {
-        case "string":
-            return typeof (schema.example || "string");
-        case "integer":
-            return typeof (schema.example || "number");
-        case "boolean":
-            return typeof (schema.example || "boolean");
-        case "object":
-            if ("properties" in schema && schema.properties) {
-                const propertiesType = {};
-                for (const [key, property] of Object.entries(schema.properties)) {
-                    propertiesType[key] = inferTypeFromSchema(property);
-                }
-                return propertiesType;
-            }
-        case "array":
-            // Handle arrays (assuming homogeneous elements for simplicity)
-            return Array.from(inferTypeFromSchema(schema.items));
-        default:
-            return "any";
-    }
-}
+const generateEndpoint_1 = require("./generateEndpoint");
 // Function to parse the YAML specification and create objects
 function parseSpec(yamlString) {
     const spec = js_yaml_1.default.load(yamlString);
@@ -100,10 +78,14 @@ const generatePrompt = async (args) => {
         const yamlString = fs_extra_1.default.readFileSync(yamlFilePath, "utf8");
         const { schemas, paths } = parseSpec(yamlString);
         // Create all schemas to type (TypeScript)
-        Object.entries(schemas).map(([name, schema]) => {
-            fs_extra_1.default.writeFileSync(`src/${name}.ts`, generateTypeScriptInterfaces(name, schema));
-        });
-        console.log("✅ Schemas successfully generated.");
+        // Object.entries(schemas).map(([name, schema]) => {
+        //   fs.writeFileSync(
+        //     `src/${name}.ts`,
+        //     generateTypeScriptInterfaces(name, schema)
+        //   );
+        // });
+        // console.log("✅ Schemas successfully generated.");
+        (0, generateEndpoint_1.generateEndpoint)(paths);
         // console.log(paths);
         return;
     }
@@ -112,34 +94,3 @@ const generatePrompt = async (args) => {
     }
 };
 exports.generatePrompt = generatePrompt;
-function toTsType(schema) {
-    switch (schema.type) {
-        case "string":
-            return "string";
-        case "integer":
-            return "number";
-        case "number":
-            return "number";
-        case "boolean":
-            return "boolean";
-        case "array":
-            if ("items" in schema && schema.items) {
-                return `${toTsType(schema.items)}[]`;
-            }
-            return "any[]";
-        case "object":
-            if ("properties" in schema && schema.properties) {
-                return `{ ${Object.entries(schema.properties)
-                    .map(([key, val]) => `${key}: ${toTsType(val)}`)
-                    .join("; ")} }`;
-            }
-        default:
-            return "any";
-    }
-}
-function generateTypeScriptInterfaces(name, schema) {
-    const props = Object.entries(schema.properties)
-        .map(([propName, propSchema]) => `  ${propName}: ${toTsType(propSchema)};`)
-        .join("\n");
-    return `export type ${name} = {\n${props}\n}\n`;
-}
