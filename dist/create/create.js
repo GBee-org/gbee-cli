@@ -9,7 +9,6 @@ const path_1 = __importDefault(require("path"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const inquirer_1 = __importDefault(require("inquirer"));
 const child_process_1 = require("child_process");
-const TEMPLATE_URL_JS = 'https://github.com/GBee-org/gbee'; // Update with your JS template repo
 const TEMPLATE_URL_TS = 'https://github.com/GBee-org/gbee'; // Update with your TS template repo
 const questions = [
     {
@@ -49,15 +48,9 @@ const replaceInFiles = async (directory, find, replace) => {
 const createPrompt = async () => {
     try {
         const answers = await inquirer_1.default.prompt(questions);
-        const { projectName, language, packageManager } = answers;
+        const { projectName, packageManager } = answers;
         const projectPath = path_1.default.join(process.cwd(), projectName);
-        // Select the appropriate template URL
-        // const repoUrl = language === 'TypeScript' ? TEMPLATE_URL_TS : TEMPLATE_URL_JS;
         const repoUrl = TEMPLATE_URL_TS;
-        if (!repoUrl) {
-            console.error('Template URL is not defined for the selected language.');
-            process.exit(1);
-        }
         // Clone the project
         console.log(`Cloning template from ${repoUrl}...`);
         (0, child_process_1.execSync)(`git clone ${repoUrl} ${projectPath}`, { stdio: 'inherit' });

@@ -5,10 +5,9 @@ import fs from 'fs-extra';
 import inquirer from 'inquirer';
 import { execSync } from 'child_process';
 
-const TEMPLATE_URL_JS = 'https://github.com/GBee-org/gbee'; // Update with your JS template repo
 const TEMPLATE_URL_TS = 'https://github.com/GBee-org/gbee'; // Update with your TS template repo
 
-const questions = [
+const questions: any[] = [
   {
     type: 'input',  
     name: 'projectName',
@@ -50,17 +49,9 @@ const replaceInFiles = async (directory, find, replace) => {
 export const createPrompt = async () => {
   try {
     const answers = await inquirer.prompt(questions);
-    const { projectName, language, packageManager } = answers;
+    const { projectName, packageManager } = answers;
     const projectPath = path.join(process.cwd(), projectName);
-
-    // Select the appropriate template URL
-    // const repoUrl = language === 'TypeScript' ? TEMPLATE_URL_TS : TEMPLATE_URL_JS;
     const repoUrl = TEMPLATE_URL_TS;
-
-    if (!repoUrl) {
-      console.error('Template URL is not defined for the selected language.');
-      process.exit(1);
-    }
 
     // Clone the project
     console.log(`Cloning template from ${repoUrl}...`);

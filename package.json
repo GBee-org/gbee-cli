@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.8",
     "standard-version": "^9.5.0"
   }
 }
