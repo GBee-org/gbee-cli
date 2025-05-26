@@ -7,7 +7,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generatePrompt = void 0;
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const js_yaml_1 = __importDefault(require("js-yaml"));
-const generateEndpoint_1 = require("./generateEndpoint");
 // Function to parse the YAML specification and create objects
 function parseSpec(yamlString) {
     const spec = js_yaml_1.default.load(yamlString);
@@ -23,7 +22,26 @@ function parseSpec(yamlString) {
         paths[path] = {};
         for (const [method, methodObject] of Object.entries(pathObject)) {
             paths[path][method] = {};
-            // Request body object (if defined)
+            paths[path][method].operationId =
+                methodObject.operationId || `${method}${methodObject.tags[0] || ""}`;
+            paths[path][method].tag = methodObject.tags[0] || "";
+            // Request parameters object (if defined)
+            if (methodObject.parameters) {
+                const requestParameters = methodObject.parameters.filter((param) => param.in === "path" || param.in === "query") || [];
+                paths[path][method].requestParameters = requestParameters.map((param) => {
+                    const paramWithType = {
+                        name: param.name,
+                        in: param.in,
+                        required: param.required,
+                        schema: param.schema,
+                    };
+                    if (param.schema && param.schema.$ref) {
+                        const refName = param.schema.$ref.substring(param.schema.$ref.lastIndexOf("/") + 1);
+                        paramWithType.schemaRef = schemas[refName];
+                    }
+                    return paramWithType;
+                });
+            }
             if (methodObject.requestBody) {
                 const requestBodySchema = methodObject.requestBody.content["application/json"].schema;
                 let requestBodyRef;
@@ -85,8 +103,8 @@ const generatePrompt = async (args) => {
         //   );
         // });
         // console.log("✅ Schemas successfully generated.");
-        (0, generateEndpoint_1.generateEndpoint)(paths);
-        // console.log(paths);
+        // generateEndpoint(paths);
+        console.log(paths);
         return;
     }
     catch (error) {
