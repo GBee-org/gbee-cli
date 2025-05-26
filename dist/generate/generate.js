@@ -7,9 +7,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generatePrompt = void 0;
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const js_yaml_1 = __importDefault(require("js-yaml"));
+const generateType_1 = require("./generateType");
+const generateAPI_1 = require("./generateAPI");
 // Function to parse the YAML specification and create objects
 function parseSpec(yamlString) {
     const spec = js_yaml_1.default.load(yamlString);
+    // Create an array of tags from the OpenAPI spec
+    const tags = spec.tags ? spec.tags.map((tag) => tag.name) : [];
     // Create objects for schemas with inferred types
     const schemas = {};
     for (const [name, schema] of Object.entries(spec.components.schemas)) {
@@ -86,7 +90,7 @@ function parseSpec(yamlString) {
             }
         }
     }
-    return { schemas, paths };
+    return { tags, schemas, paths };
 }
 const generatePrompt = async (args) => {
     try {
@@ -94,17 +98,17 @@ const generatePrompt = async (args) => {
         const yamlFilePath = args.api;
         // Read the content of the file
         const yamlString = fs_extra_1.default.readFileSync(yamlFilePath, "utf8");
-        const { schemas, paths } = parseSpec(yamlString);
+        const { tags, schemas, paths } = parseSpec(yamlString);
         // Create all schemas to type (TypeScript)
-        // Object.entries(schemas).map(([name, schema]) => {
-        //   fs.writeFileSync(
-        //     `src/${name}.ts`,
-        //     generateTypeScriptInterfaces(name, schema)
-        //   );
-        // });
-        // console.log("✅ Schemas successfully generated.");
+        Object.entries(schemas).map(([name, schema]) => {
+            fs_extra_1.default.writeFileSync(`src/${name}.ts`, (0, generateType_1.generateTypeScriptInterfaces)(name, schema));
+        });
+        console.log("Schemas successfully generated.");
+        for (const tag of tags) {
+            // Create a directory for each tag
+            (0, generateAPI_1.generateEndpointFromTemplate)(tag.endsWith("s") ? tag.slice(0, -1) : tag);
+        }
         // generateEndpoint(paths);
-        console.log(paths);
         return;
     }
     catch (error) {

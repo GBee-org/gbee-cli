@@ -76,9 +76,10 @@ export function generateEndpoint(paths) {
   for (const route in paths) {
     const pathItem = paths[route];
     for (const method in pathItem) {
-      console.log(route);
+      const operationId = pathItem[method].operationId || generateFunctionName(method, route);
+      const tag = pathItem[method].tag;
       
-      const routeCode = generateControllerRoute("name", method, route, "");
+      const routeCode = generateControllerRoute(tag, method, route, operationId);
       const serviceCode = generateServiceMethod(method, route);
       controllerRoutes.push(routeCode);
       serviceMethods.push(serviceCode);
@@ -88,7 +89,7 @@ export function generateEndpoint(paths) {
   const controllerCode = CONTROLLER_TEMPLATE("users", controllerRoutes.join("\n"));
   const serviceCode = SERVICE_TEMPLATE("user", serviceMethods.join("\n"));
 
-  // fs.writeFileSync(path.join("src-test", "UsersController.ts"), controllerCode);
-  // fs.writeFileSync(path.join("src-test", "userService.ts"), serviceCode);
-  console.log("✅ Controller and service generated successfully.");
+  fs.writeFileSync(path.join("src-test", "UsersController.ts"), controllerCode);
+  fs.writeFileSync(path.join("src-test", "userService.ts"), serviceCode);
+  console.log("Controller and service generated successfully.");
 }

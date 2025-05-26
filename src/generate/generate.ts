@@ -5,13 +5,18 @@ import jsYaml from "js-yaml";
 import { Parameter, Schema } from '../types';
 import { generateTypeScriptInterfaces } from './generateType';
 import { generateEndpoint } from './generateEndpoint';
+import { generateEndpointFromTemplate } from './generateAPI';
 
 // Function to parse the YAML specification and create objects
 function parseSpec(yamlString: string): {
   schemas: { [key: string]: any };
   paths: any;
+  tags: string[];
 } {
   const spec = jsYaml.load(yamlString);
+
+  // Create an array of tags from the OpenAPI spec
+  const tags = spec.tags ? spec.tags.map((tag: any) => tag.name) : [];
 
   // Create objects for schemas with inferred types
   const schemas: { [key: string]: any } = {};
@@ -105,7 +110,7 @@ function parseSpec(yamlString: string): {
     }
   }
 
-  return { schemas, paths };
+  return { tags, schemas, paths };
 }
 
 export const generatePrompt = async (args?: any) => {
@@ -116,19 +121,23 @@ export const generatePrompt = async (args?: any) => {
     // Read the content of the file
     const yamlString = fs.readFileSync(yamlFilePath, "utf8");
 
-    const { schemas, paths } = parseSpec(yamlString);
+    const { tags, schemas, paths } = parseSpec(yamlString);
 
     // Create all schemas to type (TypeScript)
-    // Object.entries(schemas).map(([name, schema]) => {
-    //   fs.writeFileSync(
-    //     `src/${name}.ts`,
-    //     generateTypeScriptInterfaces(name, schema)
-    //   );
-    // });
+    Object.entries(schemas).map(([name, schema]) => {
+      fs.writeFileSync(
+        `src/${name}.ts`,
+        generateTypeScriptInterfaces(name, schema)
+      );
+    });
 
-    // console.log("✅ Schemas successfully generated.");
+    console.log("Schemas successfully generated.");
+    
+    for (const tag of tags) {
+      // Create a directory for each tag
+      generateEndpointFromTemplate(tag.endsWith("s") ? tag.slice(0, -1) : tag);
+    }
     // generateEndpoint(paths);
-    console.log(paths);
 
     return;
   } catch (error) {

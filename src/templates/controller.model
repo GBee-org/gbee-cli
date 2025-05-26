@@ -1,0 +1,89 @@
+import { Request, Response, NextFunction } from "express";
+import { Controller, Route } from "../decorators";
+import { {{model}}Service } from "../services";
+import { {{Model}} } from "../{{model}}s";
+
+@Controller('/{{model}}s')
+export class {{Model}}sController {
+  @Route('get', '/get/all')
+  async getAll(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await {{model}}Service.getAll();
+      return res.status(200).json(users);
+    } catch (error) {
+      logging.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Unexpected error';
+      return res.status(500).json({ message: errorMessage });
+    }
+  }
+
+  @Route('get', '/get/:id')
+  async getById(req: Request, res: Response, next: NextFunction) {
+    const id = req.params.id as any as number;
+    try {
+      const {{model}} = await {{model}}Service.getById(id);
+      if (!{{model}}) return res.status(404).json({ message: 'Not Found' });
+      return res.status(200).json({{model}});
+    } catch (error) {
+      logging.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Unexpected error';
+      return res.status(500).json({ message: errorMessage });
+    }
+  }
+
+  @Route('post', '/create')
+  async create(req: Request, res: Response) {
+    const new{{Model}}s = req.body as {{Model}}[];
+    try {
+      const {{model}}sCreated = await {{model}}Service.create(new{{Model}}s);
+      if (!{{model}}sCreated || {{model}}sCreated instanceof Error) 
+        return res.status(400).json({ message: '{{Model}}s creation failed' });
+      return res.status(200).json({{model}}sCreated);
+    } catch (error) {
+      logging.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Unexpected error';
+      res.status(500).json({ message: errorMessage });
+    }
+  }
+
+  @Route('get', '/query')
+  async getByQuery(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {{model}}s = await {{model}}Service.getByQuery(req.query);
+      if (!{{model}}s) return res.status(404).json({ message: 'Not Found' });
+      return res.status(200).json({{model}}s);
+    } catch (error) {
+      logging.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Unexpected error';
+      return res.status(500).json({ message: errorMessage });
+    }
+  }
+
+  @Route('patch', '/update/:id')
+  async update(req: Request, res: Response, next: NextFunction) {
+    const id = req.params.id as any as number;
+    try {
+      const {{model}} = await {{model}}Service.update(id, req.body);
+      if (!{{model}}) return res.status(404).json({ message: 'Not Found' });
+      return res.status(200).json({{model}});
+    } catch (error) {
+      logging.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Unexpected error';
+      return res.status(500).json({ message: errorMessage });
+    }
+  }
+
+  @Route('delete', '/delete/:id')
+  async delete(req: Request, res: Response, next: NextFunction) {
+    const id = req.params.id as any as number;
+    try {
+      const isDeleted = await {{model}}Service.remove(id);
+      if (!isDeleted) return res.status(404).json({ message: 'Not Found' });
+      return res.status(200).json({ message: 'Deleted successfully' });
+    } catch (error) {
+      logging.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Unexpected error';
+      return res.status(500).json({ message: errorMessage });
+    }
+  }
+}

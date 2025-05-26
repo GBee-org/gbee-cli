@@ -1,0 +1,92 @@
+import { TypeORM } from '../decorators';
+import { {{Model}} } from '../{{model}}s';
+
+async function getAll() {
+  try {
+    const {{model}}s = await TypeORM.GetAll('{{model}}s');
+    return {{model}}s;
+  } catch (error) {
+    logging.error(error);
+    new Error(
+      'Error while getting all {{{{model}}s}}' +
+        { message: error instanceof Error ? error.message : 'Unexpected error' }
+    );
+  }
+}
+
+async function getById(id: number) {
+  try {
+    const {{model}} = await TypeORM.GetById('{{model}}s', id);
+    if (!{{model}}) return null;
+    return {{model}};
+  } catch (error) {
+    logging.error(error);
+    new Error(
+      'Error while getting {{{{model}}s}} by id' +
+        { message: error instanceof Error ? error.message : 'Unexpected error' }
+    );
+  }
+}
+
+async function create({{model}}s: {{Model}}[]) {
+  try {
+    // TODO: Add your validation logic here
+    const {{model}}Created = await TypeORM.Create('{{model}}s', {{model}}s);
+    return {{model}}Created;
+  } catch (error) {
+    logging.error(error);
+    new Error(
+      `Error while creating {{user}} with {{model}}=${{{model}}s}` +
+        { message: error instanceof Error ? error.message : 'Unexpected error' }
+    );
+  }
+}
+
+async function getByQuery(queryParams: any) {
+  try {
+    let {{model}}s = await TypeORM.Query('{{model}}s', queryParams);
+    if ({{model}}s?.length === 0 || {{model}}s === null) return [];
+    return {{model}}s;
+  } catch (error) {
+    logging.error(error);
+    new Error(
+      `Error while getting {{{{model}}}} by query=${queryParams}` +
+        { message: error instanceof Error ? error.message : 'Unexpected error' }
+    );
+  }
+}
+
+async function update(id: number, updatedData: {{Model}}) {
+  try {
+    const {{model}} = await TypeORM.Update('{{model}}s', id, updatedData);
+    return {{model}};
+  } catch (error) {
+    logging.error(error);
+    new Error(
+      'Error while updating {{{{model}}}}' +
+        { message: error instanceof Error ? error.message : 'Unexpected error' }
+    );
+  }
+}
+
+async function remove(id: number) {
+  try {
+    const isDeleted = await TypeORM.Delete('{{model}}s', id);
+    return isDeleted;
+  } catch (error) {
+    logging.error(error);
+    new Error(
+      'Error while deleting {{{{model}}}}' +
+        { message: error instanceof Error ? error.message : 'Unexpected error' }
+    );
+  }
+}
+
+export const {{model}}Service = {
+  getAll,
+  getById,
+  create,
+  getByQuery,
+  update,
+  remove
+};
