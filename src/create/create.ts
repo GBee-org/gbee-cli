@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import inquirer from 'inquirer';
 import { execSync } from 'child_process';
 
-const TEMPLATE_URL_TS = 'https://github.com/GBee-org/gbee'; // Update with your TS template repo
+const TEMPLATE_URL_TS = 'https://github.com/GBee-org/gbee';
 
 const questions: any[] = [
   {
@@ -79,11 +79,11 @@ export const createPrompt = async () => {
     const replace = projectName.toLowerCase();
     await replaceInFiles(projectPath, find, replace);
 
-    const findRestCamelCase = 'GBeeRest'; // CamelCase pour les noms de classes ou variables
+    const findRestCamelCase = 'GBeeRest';
     const replaceRestCamelCase = projectName.replace(/-./g, (x) => x[1].toUpperCase());
     await replaceInFiles(projectPath, findRestCamelCase, replaceRestCamelCase);
 
-    const findCamelCase = 'GBeeApp'; // CamelCase pour les noms de classes ou variables
+    const findCamelCase = 'GBeeApp';
     const replaceCamelCase = projectName.replace(/-./g, (x) => x[1].toUpperCase());
     await replaceInFiles(projectPath, findCamelCase, replaceCamelCase);
 
